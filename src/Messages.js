@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import AutoSizer from 'react-virtualized-auto-sizer';
 import noop from 'lodash/noop';
 import { DynamicSizeList } from "dynamic-virtualized-list";
@@ -52,7 +52,7 @@ for (let i = 0; i < 200; i++) {
   };
 }
 
-export default function Messages() {
+export default function Messages({videoHeight}) {
   const listRef = useRef();
   const listInnerRef = useRef();
   const [correctScrollToBottom, setCorrectScrollToBottom] = useState(true);
@@ -61,6 +61,7 @@ export default function Messages() {
   const [loadOffsetWithInRange, setLoadOffsetWithInRange] = useState(false);
   const messagesMapByIdRef = useRef();
   messagesMapByIdRef.current = messagesMapById;
+  const [divHeight, setDivHeight] = useState(0);
 
   const onScroll = useCallback(
     ({ scrollHeight, scrollOffset, scrollDirection, clientHeight }) => {
@@ -78,6 +79,10 @@ export default function Messages() {
     },
     []
   );
+
+  useEffect(() => {
+    setDivHeight(window.innerHeight - videoHeight);
+  }, []);
 
   const data = useMemo(
     () =>
@@ -106,15 +111,15 @@ export default function Messages() {
 
   return (
     <div style={{width: '100%', height: '100%'}}>
-      <AutoSizer>
-        {({ height, width }) => (
+      <div style={{width: '100%', height: divHeight, position: 'absolute', zIndex: 0, bottom: 0, maxHeight: '100%'}}>
+        <div style={{overflow: 'visible', height: 0, width: 0}}>
           <DynamicSizeList
             itemData={data}
             onScroll={onScroll}
             ref={listRef}
             innerRef={listInnerRef}
-            height={height}
-            width={width}
+            height={divHeight}
+            width={'100%'}
             style={listStyle}
             innerListStyle={innerListStyle}
             initScrollToIndex={INIT_SCROLL_TO_INDEX}
@@ -128,8 +133,8 @@ export default function Messages() {
           >
             {rowRenderer}
           </DynamicSizeList>
-        )}
-      </AutoSizer>
+        </div>
+      </div>
     </div>
   );
 }
